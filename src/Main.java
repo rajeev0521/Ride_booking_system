@@ -1,140 +1,368 @@
+import java.util.List;
+import java.util.Scanner;
+
 public class Main {
+    private static RideBookingSystem system;
+    private static Scanner scanner;
+    private static User currentUser = null;
+
     public static void main(String[] args) {
         System.out.println("========================================");
-        System.out.println("   SHARED CAB BOOKING SYSTEM - DEMO    ");
+        System.out.println("   SHARED CAB BOOKING SYSTEM           ");
         System.out.println("========================================\n");
 
-        // Initialize the booking system
-        RideBookingSystem system = new RideBookingSystem();
+        system = new RideBookingSystem();
+        scanner = new Scanner(System.in);
 
-        // ==================== USER REGISTRATION ====================
-        System.out.println(">>> REGISTERING USERS <<<\n");
+        boolean running = true;
+        while (running) {
+            if (currentUser == null) {
+                running = showAuthMenu();
+            } else {
+                running = showMainMenu();
+            }
+        }
 
-        User user1 = new User("Rahul Sharma", "rahul@email.com", "pass123", 9876543210L);
-        User user2 = new User("Priya Singh", "priya@email.com", "pass456", 9876543211L);
-        User user3 = new User("Amit Kumar", "amit@email.com", "pass789", 9876543212L);
+        System.out.println("\nThank you for using Cab Booking System!");
+        System.out.println("Goodbye!");
+        scanner.close();
+        DatabaseConnection.closeConnection();
+    }
 
-        system.registerUser(user1);
-        system.registerUser(user2);
-        system.registerUser(user3);
+    // ==================== AUTHENTICATION MENU ====================
+    private static boolean showAuthMenu() {
+        System.out.println("\n--- Welcome ---");
+        System.out.println("1. Register");
+        System.out.println("2. Login");
+        System.out.println("3. Exit");
+        System.out.print("\nEnter your choice: ");
 
-        // Try registering duplicate user
-        User duplicateUser = new User("Rahul Copy", "rahul@email.com", "pass000", 1111111111L);
-        system.registerUser(duplicateUser);
+        int choice = getIntInput();
 
-        // ==================== USER LOGIN ====================
-        System.out.println("\n>>> USER LOGIN <<<\n");
+        switch (choice) {
+            case 1:
+                registerUser();
+                break;
+            case 2:
+                loginUser();
+                break;
+            case 3:
+                return false;
+            default:
+                System.out.println("Invalid choice! Please try again.");
+        }
+        return true;
+    }
 
-        User loggedInUser = system.loginUser("rahul@email.com", "pass123");
-        system.loginUser("wrong@email.com", "wrongpass"); // Should fail
+    // ==================== MAIN MENU (After Login) ====================
+    private static boolean showMainMenu() {
+        System.out.println("\n--- Main Menu ---");
+        System.out.println("Welcome, " + currentUser.getName() + "!");
+        System.out.println();
+        System.out.println("1. View All Rides");
+        System.out.println("2. Search Rides");
+        System.out.println("3. Create a Ride");
+        System.out.println("4. Book a Ride");
+        System.out.println("5. My Bookings");
+        System.out.println("6. My Created Rides");
+        System.out.println("7. Cancel Booking");
+        System.out.println("8. Update My Profile");
+        System.out.println("9. Logout");
+        System.out.println("10. Delete My Account");
+        System.out.println("0. Exit");
+        System.out.print("\nEnter your choice: ");
 
-        // ==================== CREATE RIDES ====================
-        System.out.println("\n>>> CREATING RIDES <<<\n");
+        int choice = getIntInput();
 
-        Ride ride1 = system.createRide("Delhi", "Agra", 4, 500.0, user1);
-        Ride ride2 = system.createRide("Mumbai", "Pune", 3, 350.0, user2);
-        Ride ride3 = system.createRide("Delhi", "Jaipur", 5, 600.0, user1);
-        Ride ride4 = system.createRide("Bangalore", "Mysore", 4, 300.0, user3);
+        switch (choice) {
+            case 1:
+                viewAllRides();
+                break;
+            case 2:
+                searchRides();
+                break;
+            case 3:
+                createRide();
+                break;
+            case 4:
+                bookRide();
+                break;
+            case 5:
+                viewMyBookings();
+                break;
+            case 6:
+                viewMyRides();
+                break;
+            case 7:
+                cancelBooking();
+                break;
+            case 8:
+                updateProfile();
+                break;
+            case 9:
+                logout();
+                break;
+            case 10:
+                deleteAccount();
+                break;
+            case 0:
+                return false;
+            default:
+                System.out.println("Invalid choice! Please try again.");
+        }
+        return true;
+    }
 
-        // ==================== DISPLAY ALL RIDES ====================
+    // ==================== USER OPERATIONS ====================
+
+    private static void registerUser() {
+        System.out.println("\n--- Register New User ---");
+
+        System.out.print("Enter your name: ");
+        String name = scanner.nextLine().trim();
+
+        System.out.print("Enter your email: ");
+        String email = scanner.nextLine().trim();
+
+        System.out.print("Enter your password: ");
+        String password = scanner.nextLine().trim();
+
+        System.out.print("Enter your phone number: ");
+        long phone = getLongInput();
+
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            System.out.println("Error: All fields are required!");
+            return;
+        }
+
+        User user = new User(name, email, password, phone);
+        system.registerUser(user);
+    }
+
+    private static void loginUser() {
+        System.out.println("\n--- Login ---");
+
+        System.out.print("Enter your email: ");
+        String email = scanner.nextLine().trim();
+
+        System.out.print("Enter your password: ");
+        String password = scanner.nextLine().trim();
+
+        User user = system.loginUser(email, password);
+        if (user != null) {
+            currentUser = user;
+        }
+    }
+
+    private static void logout() {
+        System.out.println("Logged out successfully!");
+        currentUser = null;
+    }
+
+    private static void updateProfile() {
+        System.out.println("\n--- Update Profile ---");
+        System.out.println("Current details: " + currentUser);
+        System.out.println("\nLeave blank to keep current value.");
+
+        System.out.print("Enter new name (current: " + currentUser.getName() + "): ");
+        String name = scanner.nextLine().trim();
+
+        System.out.print("Enter new email (current: " + currentUser.getEmail() + "): ");
+        String email = scanner.nextLine().trim();
+
+        System.out.print("Enter new phone (current: " + currentUser.getPhone_number() + "): ");
+        String phoneStr = scanner.nextLine().trim();
+        long phone = phoneStr.isEmpty() ? 0 : Long.parseLong(phoneStr);
+
+        system.updateUser(currentUser,
+                name.isEmpty() ? null : name,
+                email.isEmpty() ? null : email,
+                phone);
+    }
+
+    private static void deleteAccount() {
+        System.out.println("\n--- Delete Account ---");
+        System.out.print("Are you sure you want to delete your account? (yes/no): ");
+        String confirm = scanner.nextLine().trim().toLowerCase();
+
+        if (confirm.equals("yes")) {
+            if (system.deleteAccount(currentUser)) {
+                currentUser = null;
+            }
+        } else {
+            System.out.println("Account deletion cancelled.");
+        }
+    }
+
+    // ==================== RIDE OPERATIONS ====================
+
+    private static void viewAllRides() {
         system.displayAllRides();
+    }
 
-        // ==================== SEARCH RIDES ====================
-        System.out.println("\n>>> SEARCHING RIDES <<<\n");
+    private static void searchRides() {
+        System.out.println("\n--- Search Rides ---");
+        System.out.print("Enter source (or leave blank): ");
+        String source = scanner.nextLine().trim();
 
-        System.out.println("Searching for rides from 'Delhi':");
-        var delhiRides = system.searchRides("Delhi", null);
-        for (Ride ride : delhiRides) {
-            System.out.println("  - " + ride);
+        System.out.print("Enter destination (or leave blank): ");
+        String destination = scanner.nextLine().trim();
+
+        List<Ride> rides = system.searchRides(
+                source.isEmpty() ? null : source,
+                destination.isEmpty() ? null : destination);
+
+        if (rides.isEmpty()) {
+            System.out.println("No rides found matching your criteria.");
+        } else {
+            System.out.println("\n--- Search Results ---");
+            for (int i = 0; i < rides.size(); i++) {
+                System.out.println((i + 1) + ". " + rides.get(i));
+            }
+        }
+    }
+
+    private static void createRide() {
+        System.out.println("\n--- Create a Ride ---");
+
+        System.out.print("Enter source location: ");
+        String source = scanner.nextLine().trim();
+
+        System.out.print("Enter destination: ");
+        String destination = scanner.nextLine().trim();
+
+        System.out.print("Enter total seats available: ");
+        int seats = getIntInput();
+
+        System.out.print("Enter fare per seat: ");
+        double fare = getDoubleInput();
+
+        if (source.isEmpty() || destination.isEmpty()) {
+            System.out.println("Error: Source and destination are required!");
+            return;
         }
 
-        System.out.println("\nSearching for rides to 'Pune':");
-        var puneRides = system.searchRides(null, "Pune");
-        for (Ride ride : puneRides) {
-            System.out.println("  - " + ride);
+        system.createRide(source, destination, seats, fare, currentUser);
+    }
+
+    private static void bookRide() {
+        System.out.println("\n--- Book a Ride ---");
+
+        // Show available rides first
+        List<Ride> rides = system.getAllAvailableRides();
+        if (rides.isEmpty()) {
+            System.out.println("No rides available for booking.");
+            return;
         }
 
-        // ==================== BOOK RIDES ====================
-        System.out.println("\n>>> BOOKING RIDES <<<\n");
-
-        Booking booking1 = system.bookRide(user2, ride1, 2); // Priya books 2 seats on Rahul's Delhi-Agra ride
-        System.out.println();
-        Booking booking2 = system.bookRide(user3, ride1, 1); // Amit books 1 seat on the same ride
-        System.out.println();
-        Booking booking3 = system.bookRide(user1, ride2, 2); // Rahul books 2 seats on Priya's Mumbai-Pune ride
-
-        // Try to book more seats than available
-        System.out.println();
-        system.bookRide(user3, ride1, 5); // Should fail - not enough seats
-
-        // ==================== DISPLAY USER BOOKINGS ====================
-        System.out.println("\n>>> USER BOOKINGS <<<\n");
-
-        System.out.println("Priya's bookings:");
-        for (Booking b : system.getUserBookings(user2)) {
-            System.out.println("  - " + b);
+        System.out.println("\nAvailable Rides:");
+        for (int i = 0; i < rides.size(); i++) {
+            System.out.println((i + 1) + ". " + rides.get(i));
         }
 
-        System.out.println("\nRahul's bookings:");
-        for (Booking b : system.getUserBookings(user1)) {
-            System.out.println("  - " + b);
+        System.out.print("\nEnter ride number to book: ");
+        int rideIndex = getIntInput() - 1;
+
+        if (rideIndex < 0 || rideIndex >= rides.size()) {
+            System.out.println("Invalid ride selection!");
+            return;
         }
 
-        // ==================== USER CREATED RIDES ====================
-        System.out.println("\n>>> RIDES CREATED BY RAHUL <<<\n");
+        Ride selectedRide = rides.get(rideIndex);
 
-        for (Ride ride : system.getUserCreatedRides(user1)) {
-            System.out.println("  - " + ride);
+        System.out.print("Enter number of seats to book (available: " + selectedRide.getAvailable_seats() + "): ");
+        int seats = getIntInput();
+
+        system.bookRide(currentUser, selectedRide, seats);
+    }
+
+    private static void viewMyBookings() {
+        System.out.println("\n--- My Bookings ---");
+        List<Booking> bookings = system.getUserBookings(currentUser);
+
+        if (bookings.isEmpty()) {
+            System.out.println("You have no bookings.");
+        } else {
+            for (int i = 0; i < bookings.size(); i++) {
+                System.out.println((i + 1) + ". " + bookings.get(i));
+            }
+        }
+    }
+
+    private static void viewMyRides() {
+        System.out.println("\n--- My Created Rides ---");
+        List<Ride> rides = system.getUserCreatedRides(currentUser);
+
+        if (rides.isEmpty()) {
+            System.out.println("You haven't created any rides.");
+        } else {
+            for (int i = 0; i < rides.size(); i++) {
+                System.out.println((i + 1) + ". " + rides.get(i));
+            }
+        }
+    }
+
+    private static void cancelBooking() {
+        System.out.println("\n--- Cancel Booking ---");
+        List<Booking> bookings = system.getUserBookings(currentUser);
+
+        if (bookings.isEmpty()) {
+            System.out.println("You have no bookings to cancel.");
+            return;
         }
 
-        // ==================== UPDATE BOOKING ====================
-        System.out.println("\n>>> UPDATING BOOKING <<<\n");
+        System.out.println("\nYour Bookings:");
+        for (int i = 0; i < bookings.size(); i++) {
+            System.out.println((i + 1) + ". " + bookings.get(i));
+        }
 
-        System.out.println("Before update: " + booking1);
-        system.updateBooking(booking1, 1); // Reduce from 2 seats to 1
-        System.out.println("After update: " + booking1);
+        System.out.print("\nEnter booking number to cancel: ");
+        int bookingIndex = getIntInput() - 1;
 
-        // ==================== UPDATE RIDE ====================
-        System.out.println("\n>>> UPDATING RIDE <<<\n");
+        if (bookingIndex < 0 || bookingIndex >= bookings.size()) {
+            System.out.println("Invalid booking selection!");
+            return;
+        }
 
-        System.out.println("Before update: " + ride3);
-        system.updateRide(ride3, null, null, 6, 550.0); // Increase seats and reduce fare
-        System.out.println("After update: " + ride3);
+        System.out.print("Are you sure you want to cancel this booking? (yes/no): ");
+        String confirm = scanner.nextLine().trim().toLowerCase();
 
-        // ==================== UPDATE USER ====================
-        System.out.println("\n>>> UPDATING USER <<<\n");
+        if (confirm.equals("yes")) {
+            system.deleteBooking(bookings.get(bookingIndex));
+        } else {
+            System.out.println("Cancellation aborted.");
+        }
+    }
 
-        System.out.println("Before update: " + user3);
-        system.updateUser(user3, "Amit K.", null, 9999999999L);
-        System.out.println("After update: " + user3);
+    // ==================== UTILITY METHODS ====================
 
-        // ==================== CANCEL BOOKING ====================
-        System.out.println("\n>>> CANCELLING BOOKING <<<\n");
+    private static int getIntInput() {
+        try {
+            String input = scanner.nextLine().trim();
+            return Integer.parseInt(input);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input! Please enter a number.");
+            return -1;
+        }
+    }
 
-        System.out.println("Ride before cancellation: " + ride1);
-        system.deleteBooking(booking2); // Cancel Amit's booking
-        System.out.println("Ride after cancellation: " + ride1);
+    private static long getLongInput() {
+        try {
+            String input = scanner.nextLine().trim();
+            return Long.parseLong(input);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input! Please enter a valid number.");
+            return 0;
+        }
+    }
 
-        // ==================== FINAL SUMMARY ====================
-        System.out.println("\n>>> FINAL SYSTEM STATE <<<");
-        system.displayAllUsers();
-        system.displayAllRides();
-        system.displayAllBookings();
-
-        // ==================== DELETE RIDE ====================
-        System.out.println("\n>>> DELETING RIDE <<<\n");
-        system.deleteRide(ride4);
-
-        // ==================== DELETE USER ACCOUNT ====================
-        System.out.println("\n>>> DELETING USER ACCOUNT <<<\n");
-        System.out.println("Deleting Amit's account (he has no active bookings now):");
-        system.deleteAccount(user3);
-
-        System.out.println("\n>>> FINAL USER LIST <<<");
-        system.displayAllUsers();
-
-        System.out.println("\n========================================");
-        System.out.println("          DEMO COMPLETED!              ");
-        System.out.println("========================================");
+    private static double getDoubleInput() {
+        try {
+            String input = scanner.nextLine().trim();
+            return Double.parseDouble(input);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input! Please enter a valid number.");
+            return 0.0;
+        }
     }
 }

@@ -4,22 +4,15 @@ import java.sql.SQLException;
 
 public class DatabaseConnection {
 
-    // Database configuration - UPDATE THESE VALUES
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/ridebookingapp";
     private static final String DB_USER = "postgres";
     private static final String DB_PASSWORD = "10242";
 
     private static Connection connection = null;
 
-    // Private constructor to prevent instantiation
     private DatabaseConnection() {
     }
 
-    /**
-     * Get the database connection (singleton pattern)
-     * 
-     * @return Connection object
-     */
     public static Connection getConnection() {
         if (connection == null) {
             try {
@@ -43,9 +36,6 @@ public class DatabaseConnection {
         return connection;
     }
 
-    /**
-     * Close the database connection
-     */
     public static void closeConnection() {
         if (connection != null) {
             try {
@@ -57,12 +47,6 @@ public class DatabaseConnection {
             }
         }
     }
-
-    /**
-     * Check if connected to database
-     * 
-     * @return true if connected, false otherwise
-     */
     public static boolean isConnected() {
         try {
             return connection != null && !connection.isClosed();

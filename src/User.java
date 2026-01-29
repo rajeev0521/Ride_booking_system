@@ -1,19 +1,27 @@
+import java.util.Date;
+
 public class User {
     private int id;
     private String name;
     private String email;
     private String password;
     private long phone_number;
+    private String licence_no;
+    private String licence_exp;
 
     // Default constructor
-    public User() {}
+    public User() {
+    }
 
     // Constructor without id (for new users before DB insertion)
-    public User(String name, String email, String password, long phone_number) {
+    public User(String name, String email, String password, long phone_number, String licence_no, String licence_exp) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.phone_number = phone_number;
+        this.licence_no = licence_no;
+        this.licence_exp = licence_exp;
+
     }
 
     // Constructor with id (for users loaded from DB)
@@ -63,6 +71,22 @@ public class User {
 
     public void setPhone_number(long phone_number) {
         this.phone_number = phone_number;
+    }
+
+    public String getLicence_exp() {
+        return licence_exp;
+    }
+
+    public void setLicence_exp(String licence_exp) {
+        this.licence_exp = licence_exp;
+    }
+
+    public String getLicence_no() {
+        return licence_no;
+    }
+
+    public void setLicence_no(String licence_no) {
+        this.licence_no = licence_no;
     }
 
     @Override

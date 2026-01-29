@@ -1,0 +1,6 @@
+1. ask user to add there licence no and licence expiry date before creating ride if user has not add it prior and add it to there profile
+2. ask for car details (brand, model, car number plate) while creating ride
+3. add timeStamp while creating the ride
+4. don't all user to update and delete ride if anyone has already booked the ride
+5. allow user to cancel the ride only till 10min from the time of ride booked
+

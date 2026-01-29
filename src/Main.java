@@ -130,12 +130,18 @@ public class Main {
         System.out.print("Enter your phone number: ");
         long phone = getLongInput();
 
+        System.out.println("Enter your Driving licence no: ");
+        String licence_no = scanner.nextLine().trim();
+
+        System.out.println("Enter the expiry date of your licence: ");
+        String licence_exp = scanner.nextLine();
+
         if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             System.out.println("Error: All fields are required!");
             return;
         }
 
-        User user = new User(name, email, password, phone);
+        User user = new User(name, email, password, phone, licence_no, licence_exp);
         system.registerUser(user);
     }
 
@@ -225,6 +231,23 @@ public class Main {
     private static void createRide() {
         System.out.println("\n--- Create a Ride ---");
 
+        // Check if user has valid licence details
+        if (!system.hasValidLicence(currentUser)) {
+            System.out.println("\nYou need to provide your driving licence details before creating a ride.");
+            System.out.print("Enter your Driving Licence Number: ");
+            String licenceNo = scanner.nextLine().trim();
+
+            System.out.print("Enter Licence Expiry Date (e.g., 2025-12-31): ");
+            String licenceExp = scanner.nextLine().trim();
+
+            if (licenceNo.isEmpty() || licenceExp.isEmpty()) {
+                System.out.println("Error: Licence details are required to create a ride!");
+                return;
+            }
+
+            system.updateUserLicence(currentUser, licenceNo, licenceExp);
+        }
+
         System.out.print("Enter source location: ");
         String source = scanner.nextLine().trim();
 
@@ -237,12 +260,28 @@ public class Main {
         System.out.print("Enter fare per seat: ");
         double fare = getDoubleInput();
 
+        // Collect car details
+        System.out.println("\n--- Car Details ---");
+        System.out.print("Enter car brand (e.g., Toyota, Honda): ");
+        String carBrand = scanner.nextLine().trim();
+
+        System.out.print("Enter car model (e.g., Camry, Civic): ");
+        String carModel = scanner.nextLine().trim();
+
+        System.out.print("Enter car number plate: ");
+        String carNumberPlate = scanner.nextLine().trim();
+
         if (source.isEmpty() || destination.isEmpty()) {
             System.out.println("Error: Source and destination are required!");
             return;
         }
 
-        system.createRide(source, destination, seats, fare, currentUser);
+        if (carBrand.isEmpty() || carModel.isEmpty() || carNumberPlate.isEmpty()) {
+            System.out.println("Error: All car details are required!");
+            return;
+        }
+
+        system.createRide(source, destination, seats, fare, carBrand, carModel, carNumberPlate, currentUser);
     }
 
     private static void bookRide() {

@@ -1,3 +1,5 @@
+import java.time.LocalDateTime;
+
 public class Booking {
     private int booking_id;
     private int ride_id;
@@ -5,25 +7,30 @@ public class Booking {
     private int total_seats;
     private double total_fare;
     private String status; // "CONFIRMED", "CANCELLED", "COMPLETED"
-    
+    private LocalDateTime bookingTime;
+
     // Object references for in-memory use
     private Ride ride;
     private User user;
 
     // Default constructor
-    public Booking() {}
+    public Booking() {
+    }
 
     // Constructor for loading from database (using IDs)
-    public Booking(int booking_id, int ride_id, int user_id, int total_seats, double total_fare, String status) {
+    public Booking(int booking_id, int ride_id, int user_id, int total_seats, double total_fare, String status,
+            LocalDateTime bookingTime) {
         this.booking_id = booking_id;
         this.ride_id = ride_id;
         this.user_id = user_id;
         this.total_seats = total_seats;
         this.total_fare = total_fare;
         this.status = status;
+        this.bookingTime = bookingTime;
     }
 
-    // Constructor for creating new booking with objects (for in-memory use and Main.java compatibility)
+    // Constructor for creating new booking with objects (for in-memory use and
+    // Main.java compatibility)
     public Booking(int booking_id, Ride ride, User user, int total_seats, double total_fare) {
         this.booking_id = booking_id;
         this.ride = ride;
@@ -33,6 +40,7 @@ public class Booking {
         this.total_seats = total_seats;
         this.total_fare = total_fare;
         this.status = "CONFIRMED";
+        this.bookingTime = LocalDateTime.now();
     }
 
     // Getters and Setters
@@ -108,6 +116,14 @@ public class Booking {
         this.status = status;
     }
 
+    public LocalDateTime getBookingTime() {
+        return bookingTime;
+    }
+
+    public void setBookingTime(LocalDateTime bookingTime) {
+        this.bookingTime = bookingTime;
+    }
+
     @Override
     public String toString() {
         return "Booking{" +
@@ -117,6 +133,7 @@ public class Booking {
                 ", seats=" + total_seats +
                 ", fare=" + total_fare +
                 ", status='" + status + '\'' +
+                ", bookingTime=" + bookingTime +
                 '}';
     }
 }

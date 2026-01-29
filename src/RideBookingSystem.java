@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,12 +33,14 @@ public class RideBookingSystem {
 
             // Insert new user
             PreparedStatement insertStmt = connection.prepareStatement(
-                    "INSERT INTO users (name, email, password, phone_number) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO users (name, email, password, phone_number, licence_no, licence_exp) VALUES (?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS);
             insertStmt.setString(1, user.getName());
             insertStmt.setString(2, user.getEmail());
             insertStmt.setString(3, user.getPassword());
             insertStmt.setLong(4, user.getPhone_number());
+            insertStmt.setString(5, user.getLicence_no());
+            insertStmt.setString(6, user.getLicence_exp());
 
             insertStmt.executeUpdate();
 
@@ -137,6 +140,44 @@ public class RideBookingSystem {
         }
     }
 
+    // Check if user has valid licence details
+    public boolean hasValidLicence(User user) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement(
+                    "SELECT licence_no, licence_exp FROM users WHERE id = ?");
+            stmt.setInt(1, user.getId());
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                String licenceNo = rs.getString("licence_no");
+                String licenceExp = rs.getString("licence_exp");
+                return licenceNo != null && !licenceNo.isEmpty()
+                        && licenceExp != null && !licenceExp.isEmpty();
+            }
+        } catch (SQLException e) {
+            System.err.println("Database error checking licence: " + e.getMessage());
+        }
+        return false;
+    }
+
+    // Update user's licence details
+    public void updateUserLicence(User user, String licenceNo, String licenceExp) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement(
+                    "UPDATE users SET licence_no = ?, licence_exp = ? WHERE id = ?");
+            stmt.setString(1, licenceNo);
+            stmt.setString(2, licenceExp);
+            stmt.setInt(3, user.getId());
+            stmt.executeUpdate();
+
+            user.setLicence_no(licenceNo);
+            user.setLicence_exp(licenceExp);
+            System.out.println("Licence details updated successfully!");
+        } catch (SQLException e) {
+            System.err.println("Database error updating licence: " + e.getMessage());
+        }
+    }
+
     public boolean deleteAccount(User user) {
         try {
             // First cancel all bookings by this user
@@ -173,10 +214,12 @@ public class RideBookingSystem {
 
     // ==================== RIDE OPERATIONS ====================
 
-    public Ride createRide(String source, String destination, int totalSeats, double fare, User createdBy) {
+    public Ride createRide(String source, String destination, int totalSeats, double fare,
+            String carBrand, String carModel, String carNumberPlate, User createdBy) {
         try {
+            LocalDateTime timestamp = LocalDateTime.now();
             PreparedStatement stmt = connection.prepareStatement(
-                    "INSERT INTO rides (source, destination, total_seats, available_seats, fare, created_by) VALUES (?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO rides (source, destination, total_seats, available_seats, fare, created_by, car_brand, car_model, car_number_plate, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS);
             stmt.setString(1, source);
             stmt.setString(2, destination);
@@ -184,12 +227,19 @@ public class RideBookingSystem {
             stmt.setInt(4, totalSeats); // available_seats = total_seats initially
             stmt.setDouble(5, fare);
             stmt.setInt(6, createdBy.getId());
+            stmt.setString(7, carBrand);
+            stmt.setString(8, carModel);
+            stmt.setString(9, carNumberPlate);
+            stmt.setTimestamp(10, Timestamp.valueOf(timestamp));
 
             stmt.executeUpdate();
 
             // Get the generated ride_id
             ResultSet keys = stmt.getGeneratedKeys();
-            Ride ride = new Ride(source, destination, totalSeats, fare, createdBy);
+            Ride ride = new Ride(source, destination, totalSeats, fare, timestamp, createdBy);
+            ride.setCarBrand(carBrand);
+            ride.setCarModel(carModel);
+            ride.setCarNumberPlate(carNumberPlate);
             if (keys.next()) {
                 ride.setRide_id(keys.getInt(1));
             }
@@ -204,7 +254,29 @@ public class RideBookingSystem {
         }
     }
 
+    // Check if a ride has any bookings
+    public boolean hasBookings(Ride ride) {
+        try {
+            PreparedStatement stmt = connection.prepareStatement(
+                    "SELECT COUNT(*) FROM bookings WHERE ride_id = ? AND status != 'CANCELLED'");
+            stmt.setInt(1, ride.getRide_id());
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Database error checking bookings: " + e.getMessage());
+        }
+        return false;
+    }
+
     public void updateRide(Ride ride, String source, String destination, int totalSeats, double fare) {
+        // Check if ride has any bookings
+        if (hasBookings(ride)) {
+            System.out.println("Error: Cannot update ride - there are existing bookings for this ride!");
+            return;
+        }
+
         try {
             int bookedSeats = ride.getTotal_seats() - ride.getAvailable_seats();
 
@@ -255,8 +327,14 @@ public class RideBookingSystem {
     }
 
     public boolean deleteRide(Ride ride) {
+        // Check if ride has any bookings
+        if (hasBookings(ride)) {
+            System.out.println("Error: Cannot delete ride - there are existing bookings for this ride!");
+            return false;
+        }
+
         try {
-            // First delete all bookings for this ride
+            // First delete all bookings for this ride (cancelled ones)
             PreparedStatement deleteBookings = connection.prepareStatement(
                     "DELETE FROM bookings WHERE ride_id = ?");
             deleteBookings.setInt(1, ride.getRide_id());
@@ -375,16 +453,18 @@ public class RideBookingSystem {
 
         try {
             double totalFare = ride.getFare() * seats;
+            LocalDateTime bookingTime = LocalDateTime.now();
 
-            // Insert booking into database
+            // Insert booking into database with booking_time
             PreparedStatement stmt = connection.prepareStatement(
-                    "INSERT INTO bookings (ride_id, user_id, total_seats, total_fare, status) VALUES (?, ?, ?, ?, ?)",
+                    "INSERT INTO bookings (ride_id, user_id, total_seats, total_fare, status, booking_time) VALUES (?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS);
             stmt.setInt(1, ride.getRide_id());
             stmt.setInt(2, user.getId());
             stmt.setInt(3, seats);
             stmt.setDouble(4, totalFare);
             stmt.setString(5, "CONFIRMED");
+            stmt.setTimestamp(6, Timestamp.valueOf(bookingTime));
 
             stmt.executeUpdate();
 
@@ -433,13 +513,19 @@ public class RideBookingSystem {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
+                LocalDateTime bookingTime = null;
+                Timestamp ts = rs.getTimestamp("booking_time");
+                if (ts != null) {
+                    bookingTime = ts.toLocalDateTime();
+                }
                 Booking booking = new Booking(
                         rs.getInt("booking_id"),
                         rs.getInt("ride_id"),
                         rs.getInt("user_id"),
                         rs.getInt("total_seats"),
                         rs.getDouble("total_fare"),
-                        rs.getString("status"));
+                        rs.getString("status"),
+                        bookingTime);
                 booking.setUser(user);
                 userBookings.add(booking);
             }
@@ -499,6 +585,20 @@ public class RideBookingSystem {
     }
 
     public boolean deleteBooking(Booking booking) {
+        // Check 10-minute cancellation window
+        LocalDateTime bookingTime = booking.getBookingTime();
+        if (bookingTime != null) {
+            LocalDateTime now = LocalDateTime.now();
+            long minutesSinceBooking = java.time.Duration.between(bookingTime, now).toMinutes();
+            if (minutesSinceBooking > 10) {
+                System.out.println(
+                        "Error: Cancellation window expired! Bookings can only be cancelled within 10 minutes of booking.");
+                System.out.println("  Booking time: " + bookingTime);
+                System.out.println("  Minutes since booking: " + minutesSinceBooking);
+                return false;
+            }
+        }
+
         try {
             Ride ride = booking.getRide();
             int seats = booking.getTotal_seats();

@@ -1,3 +1,4 @@
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,8 +9,12 @@ public class Ride {
     private int total_seats;
     private int available_seats;
     private double fare;
-    private int createdById;  // Foreign key to users table
-    private User createdBy;   // Object reference for in-memory use
+    private LocalDateTime timestamp;
+    private String carBrand;
+    private String carModel;
+    private String carNumberPlate;
+    private int createdById; // Foreign key to users table
+    private User createdBy; // Object reference for in-memory use
     private List<User> passengers;
 
     // Default constructor
@@ -18,19 +23,22 @@ public class Ride {
     }
 
     // Constructor for creating new ride (without ride_id, before DB insertion)
-    public Ride(String source, String destination, int total_seats, double fare, User createdBy) {
+    public Ride(String source, String destination, int total_seats, double fare, LocalDateTime timestamp,
+            User createdBy) {
         this.source = source;
         this.destination = destination;
         this.total_seats = total_seats;
         this.available_seats = total_seats; // Initially all seats are available
         this.fare = fare;
+        this.timestamp = timestamp;
         this.createdBy = createdBy;
         this.createdById = createdBy != null ? createdBy.getId() : 0;
         this.passengers = new ArrayList<>();
     }
 
     // Constructor for loading from database
-    public Ride(int ride_id, String source, String destination, int total_seats, int available_seats, double fare, int createdById) {
+    public Ride(int ride_id, String source, String destination, int total_seats, int available_seats, double fare,
+            int createdById) {
         this.ride_id = ride_id;
         this.source = source;
         this.destination = destination;
@@ -38,6 +46,23 @@ public class Ride {
         this.available_seats = available_seats;
         this.fare = fare;
         this.createdById = createdById;
+        this.passengers = new ArrayList<>();
+    }
+
+    // Constructor for loading from database with car details and timestamp
+    public Ride(int ride_id, String source, String destination, int total_seats, int available_seats, double fare,
+            int createdById, String carBrand, String carModel, String carNumberPlate, LocalDateTime timestamp) {
+        this.ride_id = ride_id;
+        this.source = source;
+        this.destination = destination;
+        this.total_seats = total_seats;
+        this.available_seats = available_seats;
+        this.fare = fare;
+        this.createdById = createdById;
+        this.carBrand = carBrand;
+        this.carModel = carModel;
+        this.carNumberPlate = carNumberPlate;
+        this.timestamp = timestamp;
         this.passengers = new ArrayList<>();
     }
 
@@ -141,6 +166,38 @@ public class Ride {
         }
     }
 
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getCarBrand() {
+        return carBrand;
+    }
+
+    public void setCarBrand(String carBrand) {
+        this.carBrand = carBrand;
+    }
+
+    public String getCarModel() {
+        return carModel;
+    }
+
+    public void setCarModel(String carModel) {
+        this.carModel = carModel;
+    }
+
+    public String getCarNumberPlate() {
+        return carNumberPlate;
+    }
+
+    public void setCarNumberPlate(String carNumberPlate) {
+        this.carNumberPlate = carNumberPlate;
+    }
+
     public List<User> getPassengers() {
         return passengers;
     }
@@ -158,6 +215,9 @@ public class Ride {
                 ", total_seats=" + total_seats +
                 ", available_seats=" + available_seats +
                 ", fare=" + fare +
+                ", car='" + (carBrand != null ? carBrand + " " + carModel + " (" + carNumberPlate + ")" : "N/A") + '\''
+                +
+                ", timestamp=" + timestamp +
                 ", createdBy=" + (createdBy != null ? createdBy.getName() : "ID:" + createdById) +
                 '}';
     }

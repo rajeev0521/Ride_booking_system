@@ -4,10 +4,6 @@
 
 CoRide is a ride-sharing application developed as a college project to demonstrate the implementation of a full-stack booking system. The platform connects drivers with passengers traveling in the same direction, enabling cost-effective and eco-friendly transportation.
 
-## Problem Statement
-
-With increasing fuel costs and traffic congestion in urban areas, there is a growing need for efficient ride-sharing solutions. Many people travel similar routes daily but lack a convenient way to connect and share rides. CoRide addresses this problem by providing a platform where users can either offer rides or find available rides to their destinations.
-
 ## Objective
 
 The main objective of this project is to develop a ride-sharing application that:

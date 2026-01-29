@@ -1,10 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Cab Booking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoRide - Cab Booking System</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
 
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo">🚗</span>
+            <span class="brand-name">CoRide</span>
+        </div>
+        <div class="nav-links" id="navLinks">
+            <a href="#home" class="nav-link active">Home</a>
+            <a href="#rides" class="nav-link">Browse Rides</a>
+            <a href="#create" class="nav-link">Offer a Ride</a>
+            <a href="#bookings" class="nav-link">My Bookings</a>
+        </div>
+        <div class="nav-auth">
+            <button class="btn btn-outline" id="loginBtn">Login</button>
+            <button class="btn btn-primary" id="registerBtn">Register</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>Share Your Ride,<br><span class="highlight">Save More!</span></h1>
+            <p>Connect with fellow travelers and share comfortable rides at affordable prices.</p>
+            <div class="hero-search">
+                <div class="search-box">
+                    <div class="search-field">
+                        <label>From</label>
+                        <input type="text" placeholder="Enter pickup location" id="searchFrom">
+                    </div>
+                    <div class="search-field">
+                        <label>To</label>
+                        <input type="text" placeholder="Enter destination" id="searchTo">
+                    </div>
+                    <button class="btn btn-primary btn-search">Search Rides</button>
+                </div>
+            </div>
+        </div>
+        <div class="hero-stats">
+            <div class="stat">
+                <span class="stat-number">500+</span>
+                <span class="stat-label">Active Rides</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">2K+</span>
+                <span class="stat-label">Happy Users</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">50+</span>
+                <span class="stat-label">Cities</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Available Rides Section -->
+    <section class="rides-section" id="rides">
+        <div class="container">
+            <div class="section-header">
+                <h2>Available Rides</h2>
+                <p>Find your perfect ride from our available options</p>
+            </div>
+            <div class="rides-grid" id="ridesGrid">
+                <!-- Rides will be loaded dynamically -->
+                <div class="empty-state">
+                    <div class="empty-icon">�</div>
+                    <h3>No Rides Available</h3>
+                    <p>Be the first to offer a ride or check back later!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Create Ride Section -->
+    <section class="create-section" id="create">
+        <div class="container">
+            <div class="section-header">
+                <h2>Offer a Ride</h2>
+                <p>Share your journey and earn while you travel</p>
+            </div>
+            <div class="create-form-container">
+                <form class="create-form" id="createRideForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="source">Pickup Location</label>
+                            <input type="text" id="source" placeholder="Enter pickup point" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="destination">Destination</label>
+                            <input type="text" id="destination" placeholder="Enter destination" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="seats">Available Seats</label>
+                            <input type="number" id="seats" min="1" max="6" placeholder="Number of seats" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fare">Fare per Seat (₹)</label>
+                            <input type="number" id="fare" min="1" placeholder="Enter fare" required>
+                        </div>
+                    </div>
+                    <div class="form-divider">
+                        <span>Car Details</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="carBrand">Car Brand</label>
+                            <input type="text" id="carBrand" placeholder="e.g., Toyota, Honda" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="carModel">Car Model</label>
+                            <input type="text" id="carModel" placeholder="e.g., Camry, Civic" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="carNumber">Number Plate</label>
+                            <input type="text" id="carNumber" placeholder="e.g., DL 01 AB 1234" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rideDate">Ride Date & Time</label>
+                            <input type="datetime-local" id="rideDate" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-submit">Create Ride</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- My Bookings Section -->
+    <section class="bookings-section" id="bookings">
+        <div class="container">
+            <div class="section-header">
+                <h2>My Bookings</h2>
+                <p>Manage your upcoming and past rides</p>
+            </div>
+            <div class="bookings-list" id="bookingsList">
+                <!-- Bookings will be loaded dynamically -->
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h3>No Bookings Yet</h3>
+                    <p>Book a ride to see your bookings here!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <span class="close" id="closeLogin">&times;</span>
+            <h2>Welcome Back!</h2>
+            <p class="modal-subtitle">Login to continue your journey</p>
+            <form class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Login</button>
+            </form>
+            <p class="modal-footer">Don't have an account? <a href="#" id="showRegister">Register</a></p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content modal-large">
+            <span class="close" id="closeRegister">&times;</span>
+            <h2>Create Account</h2>
+            <p class="modal-subtitle">Join CoRide today</p>
+            <form class="auth-form" id="registerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="regName">Full Name</label>
+                        <input type="text" id="regName" placeholder="Enter your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail">Email</label>
+                        <input type="email" id="regEmail" placeholder="Enter your email" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="regPhone">Phone Number</label>
+                        <input type="tel" id="regPhone" placeholder="Enter phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input type="password" id="regPassword" placeholder="Create a password" required>
+                    </div>
+                </div>
+                <div class="form-divider">
+                    <span>Driving Licence (Optional)</span>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="licenceNo">Licence Number</label>
+                        <input type="text" id="licenceNo" placeholder="e.g., DL-1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label for="licenceExp">Expiry Date</label>
+                        <input type="date" id="licenceExp">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+            </form>
+            <p class="modal-footer">Already have an account? <a href="#" id="showLogin">Login</a></p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="logo">🚗</span>
+                    <span class="brand-name">CoRide</span>
+                    <p>Making travel affordable and social.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <a href="#home">Home</a>
+                    <a href="#rides">Browse Rides</a>
+                    <a href="#create">Offer a Ride</a>
+                    <a href="#bookings">My Bookings</a>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contact Us</h4>
+                    <p>📧 support@rideshare.com</p>
+                    <p>📞 +91 98765 43210</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 CoRide. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
+
 </html>
